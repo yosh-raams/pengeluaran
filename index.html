@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Catatan Keuangan Pribadi</title>
+    <link rel="icon" href="koin.jpg">
+    <style>
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            margin: 0;
+            padding: 15px;
+            background-color: #858d9b;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: auto;
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgb(0, 0, 0);
+        }
+
+        h2 {
+            text-align: center;
+            color: #1d7e34;
+            font-size: 1.5rem;
+        }
+
+        /* Form Group Responsif */
+        .form-group {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 25px;
+            flex-wrap: wrap;
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+        }
+
+        input,
+        select {
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            flex: 1;
+            min-width: 140px;
+            font-size: 16px;
+        }
+
+        .btn {
+            padding: 12px 20px;
+            cursor: pointer;
+            border: none;
+            border-radius: 6px;
+            font-weight: bold;
+            transition: 0.3s;
+        }
+
+        .btn-add {
+            background-color: #28a745;
+            color: white;
+            width: 100%;
+        }
+
+        .header-actions {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 5px;
+        }
+
+        .btn-export {
+            background-color: #007bff;
+            color: white;
+            font-size: 0.9rem;
+        }
+
+        .btn-clear {
+            background-color: #6c757d;
+            color: white;
+            font-size: 0.9rem;
+        }
+
+        .btn-clear:hover {
+            background-color: #c82333;
+            /* Berubah merah saat hover */
+        }
+
+        /* Styling Tabel */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+        }
+
+        th,
+        td {
+            border-bottom: 1px solid #eee;
+            padding: 12px;
+            text-align: center;
+        }
+
+        th {
+            background-color: #1a73e8;
+            color: white;
+        }
+
+        /* Responsivitas Tabel untuk HP */
+        @media screen and (max-width: 600px) {
+
+            table,
+            thead,
+            tbody,
+            th,
+            td,
+            tr {
+                display: block;
+            }
+
+            thead tr {
+                position: absolute;
+                top: -9999px;
+                left: -9999px;
+            }
+
+            tr {
+                border: 1px solid #ccc;
+                margin-bottom: 15px;
+                border-radius: 8px;
+                padding: 10px;
+                background: #fff;
+            }
+
+            td {
+                border: none;
+                border-bottom: 1px solid #eee;
+                position: relative;
+                padding-left: 50%;
+                text-align: right;
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+            }
+
+            td::before {
+                content: attr(data-label);
+                font-weight: bold;
+                text-align: left;
+                color: #555;
+            }
+
+            td:last-child {
+                border-bottom: 0;
+                justify-content: center;
+                gap: 10px;
+                padding-left: 0;
+            }
+
+            .btn-edit,
+            .btn-delete {
+                flex: 1;
+            }
+        }
+
+        .btn-edit {
+            background-color: #ffc107;
+            color: black;
+        }
+
+        .btn-delete {
+            background-color: #dc3545;
+            color: white;
+        }
+
+        .pemasukan-text {
+            color: #28a745;
+            font-weight: bold;
+        }
+
+        .pengeluaran-text {
+            color: #dc3545;
+            font-weight: bold;
+        }
+
+        .total-section {
+            margin-top: 25px;
+            font-weight: bold;
+            font-size: 1.4rem;
+            text-align: right;
+            border-top: 2px solid #1a73e8;
+            padding-top: 10px;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="container">
+        <h2>💰 FINANCE-KU 💰</h2>
+
+        <div class="form-group">
+            <input type="date" id="date">
+            <input type="text" id="desc" placeholder="Keterangan">
+            <input type="number" id="amount" placeholder="Nominal (Rp)">
+            <select id="type">
+                <option value="pemasukan">Pemasukan</option>
+                <option value="pengeluaran" selected>Pengeluaran</option>
+            </select>
+            <button class="btn btn-add" onclick="addTransaction()">Tambah Transaksi</button>
+        </div>
+
+        <div class="header-actions">
+            <h3 style="margin: 0;">Riwayat Pengeluaran Bulan Januari</h3>
+            <div class="action-buttons">
+                <button class="btn btn-export" onclick="exportToCSV()">📥 Ekspor</button>
+                <button class="btn btn-clear" onclick="clearAllData()">🗑️ Hapus Semua</button>
+            </div>
+        </div>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>No.</th>
+                    <th>Tanggal</th>
+                    <th>Keterangan</th>
+                    <th>Tipe</th>
+                    <th>Nominal</th>
+                    <th>Aksi</th>
+                </tr>
+            </thead>
+            <tbody id="transactionList"></tbody>
+        </table>
+
+        <div class="total-section" id="balance">Saldo Akhir: Rp 0</div>
+    </div>
+
+    <script>
+        let transactions = JSON.parse(localStorage.getItem('myFinanceData')) || [];
+        document.getElementById('date').valueAsDate = new Date();
+
+        function saveAndRender() {
+            localStorage.setItem('myFinanceData', JSON.stringify(transactions));
+            renderTable();
+        }
+
+        function addTransaction() {
+            const date = document.getElementById('date').value;
+            const desc = document.getElementById('desc').value;
+            const amount = document.getElementById('amount').value;
+            const type = document.getElementById('type').value;
+
+            if (!date || !desc || !amount) {
+                alert("Harap lengkapi semua data!");
+                return;
+            }
+
+            transactions.push({ id: Date.now(), date, desc, amount: parseInt(amount), type });
+            saveAndRender();
+            document.getElementById('desc').value = '';
+            document.getElementById('amount').value = '';
+        }
+
+        function deleteTransaction(id) {
+            if (confirm("Hapus transaksi ini?")) {
+                transactions = transactions.filter(t => t.id !== id);
+                saveAndRender();
+            }
+        }
+
+        function editTransaction(id) {
+            const t = transactions.find(item => item.id === id);
+            const newDesc = prompt("Edit Keterangan:", t.desc);
+            const newAmount = prompt("Edit Nominal:", t.amount);
+            if (newDesc && newAmount) {
+                t.desc = newDesc;
+                t.amount = parseInt(newAmount);
+                saveAndRender();
+            }
+        }
+
+        // Fitur Baru: Hapus Semua Data
+        function clearAllData() {
+            if (transactions.length === 0) {
+                alert("Tidak ada data untuk dihapus.");
+                return;
+            }
+
+            const confirm1 = confirm("Apakah Anda yakin ingin menghapus SELURUH data transaksi?");
+            if (confirm1) {
+                const confirm2 = confirm("Data yang dihapus tidak bisa dikembalikan. Lanjutkan?");
+                if (confirm2) {
+                    transactions = [];
+                    saveAndRender();
+                    alert("Seluruh data telah dihapus.");
+                }
+            }
+        }
+
+        function renderTable() {
+            const list = document.getElementById('transactionList');
+            const balanceDisplay = document.getElementById('balance');
+            list.innerHTML = '';
+            let total = 0;
+
+            transactions.forEach((t, index) => {
+                const row = document.createElement('tr');
+                if (t.type === 'pemasukan') total += t.amount;
+                else total -= t.amount;
+
+                row.innerHTML = `
+                    <td data-label="No.">${index + 1}</td>
+                    <td data-label="Tanggal">${t.date}</td>
+                    <td data-label="Ket.">${t.desc}</td>
+                    <td data-label="Tipe" class="${t.type === 'pemasukan' ? 'pemasukan-text' : 'pengeluaran-text'}">${t.type.toUpperCase()}</td>
+                    <td data-label="Nominal">Rp ${t.amount.toLocaleString('id-ID')}</td>
+                    <td>
+                        <button class="btn btn-edit" onclick="editTransaction(${t.id})">Edit</button>
+                        <button class="btn btn-delete" onclick="deleteTransaction(${t.id})">Hapus</button>
+                    </td>
+                `;
+                list.appendChild(row);
+            });
+            balanceDisplay.innerText = `Saldo Akhir: Rp ${total.toLocaleString('id-ID')}`;
+        }
+
+        function exportToCSV() {
+            if (transactions.length === 0) {
+                alert("Tidak ada data untuk diekspor!");
+                return;
+            }
+            let csvContent = "data:text/csv;charset=utf-8,";
+            csvContent += "No,Tanggal,Keterangan,Tipe,Nominal\n";
+            transactions.forEach((t, index) => {
+                csvContent += `${index + 1},${t.date},${t.desc},${t.type},${t.amount}\n`;
+            });
+            const encodedUri = encodeURI(csvContent);
+            const link = document.createElement("a");
+            link.setAttribute("href", encodedUri);
+            link.setAttribute("download", "catatan_keuangan.csv");
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+        renderTable();
+    </script>
+</body>
+
+</html>
