@@ -1,0 +1,130 @@
+:root {
+    --primary: #1a73e8;
+    --danger: #dc3545;
+    --light: #f8f9fa;
+    --dark: #343a40;
+}
+
+body {
+    font-family: 'Segoe UI', sans-serif;
+    background: #7d90ad;
+    padding: 10px;
+}
+
+.container {
+    max-width: 900px;
+    margin: 20px auto;
+    background: #fff;
+    text-align: center;
+    
+    padding: 25px;
+    border-radius: 12px;
+    box-shadow: 0 5px 15px rgb(0, 0, 0);
+}
+
+/* Memperbaiki form agar label tidak berantakan */
+.form-group {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 15px;
+    background: var(--light);
+    padding: 20px;
+    border-radius: 10px;
+    align-items: flex-end;
+}
+
+.input-box {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-width: 150px;
+}
+
+.input-box label {
+    font-size: 12px;
+    font-weight: bold;
+    margin-bottom: 5px;
+    color: var(--dark);
+}
+
+input,
+select {
+    padding: 10px;
+    border-radius: 6px;
+    border: 1px solid #ddd;
+}
+
+.btn {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 6px;
+    font-weight: bold;
+    cursor: pointer;
+    height: 40px;
+}
+
+.btn-add {
+    background: #ffc107;
+    color: #000;
+}
+
+.btn-export {
+    background: var(--primary);
+    color: white;
+}
+
+.btn-edit {
+    background: #ffc107;
+    margin-right: 5px;
+}
+
+.btn-delete {
+    background: #6c757d;
+    color: white;
+}
+
+.header-actions {
+    display: flex;
+    justify-content: space-between;
+    margin: 20px 0;
+}
+
+.table-container {
+    overflow-x: auto;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+th,
+td {
+    padding: 12px;
+    border-bottom: 1px solid #eee;
+    text-align: center;
+}
+
+th {
+    background: var(--dark);
+    color: white;
+}
+
+.summary {
+    margin-top: 20px;
+    padding: 15px;
+    background: #fff5f5;
+    border-radius: 8px;
+    text-align: right;
+    font-size: 1.2rem;
+    font-weight: bold;
+    color: var(--danger);
+}
+
+/* Grafik Section */
+.chart-section {
+    margin-top: 40px;
+    max-width: 400px;
+    margin-left: auto;
+    margin-right: auto;
+}

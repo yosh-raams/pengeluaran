@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Catatan Pengeluaran</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="icon" href="koin.png">
+</head>
+
+<body>
+    <div class="container">
+        <h2>💰 CATATAN PENGELUARAN 💰</h2>
+
+        <div class="form-group">
+            <div class="input-box">
+                <label>Tanggal</label>
+                <input type="date" id="date">
+            </div>
+            <div class="input-box">
+                <label>Keterangan</label>
+                <input type="text" id="desc" placeholder="Beli apa?">
+            </div>
+            <div class="input-box">
+                <label>Nominal</label>
+                <input type="number" id="amount" placeholder="Rp">
+            </div>
+            <div class="input-box">
+                <label>Kategori</label>
+                <select id="category">
+                    <option>Makan & Minum</option>
+                    <option>Transportasi</option>
+                    <option>Belanja</option>
+                    <option>Tagihan</option>
+                    <option>Hiburan</option>
+                    <option>Lainnya</option>
+                </select>
+            </div>
+            <button class="btn btn-add" onclick="addTransaction()">Tambah</button>
+        </div>
+
+        <div class="header-actions">
+            <select id="filterMonth" onchange="renderTable()">
+                <option value="all">Semua Bulan</option>
+            </select>
+            <button class="btn btn-export" onclick="exportCSV()">📥 Simpan CSV</button>
+        </div>
+
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th>No</th>
+                        <th>Tanggal</th>
+                        <th>Keterangan</th>
+                        <th>Kategori</th>
+                        <th>Nominal</th>
+                        <th>Aksi</th>
+                    </tr>
+                </thead>
+                <tbody id="list"></tbody>
+            </table>
+        </div>
+
+        <div class="summary" id="summary"></div>
+
+        <div class="chart-section">
+            <canvas id="expenseChart"></canvas>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+
+</html>
