@@ -1,119 +1,213 @@
-let data = JSON.parse(localStorage.getItem("expenses_final")) || [];
-let myChart = null;
+const STORAGE_KEY = "catat_uang"; 
 
-document.getElementById("date").valueAsDate = new Date();
+let data = JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
+let currentViewMonth = 'all'; 
+let myChart = null; 
+
+// --- FUNGSI UTAMA ---
 
 function save() {
-    localStorage.setItem("expenses_final", JSON.stringify(data));
-    initFilter();
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+    updateMonthMenu(); 
     renderTable();
 }
 
 function addTransaction() {
+    const type = document.getElementById("type").value;
     const d = document.getElementById("date").value;
     const desc = document.getElementById("desc").value;
     const amount = Math.abs(parseInt(document.getElementById("amount").value));
     const category = document.getElementById("category").value;
 
-    if (!d || !desc || isNaN(amount)) return alert("Lengkapi data dulu!");
+    if (!d || !desc || isNaN(amount)) return alert("Mohon isi semua bidang!");
 
-    data.push({ id: Date.now(), d, desc, amount, category });
+    data.push({ id: Date.now(), type, d, desc, amount, category });
     save();
-    
+
     document.getElementById("desc").value = "";
     document.getElementById("amount").value = "";
 }
 
 function renderTable() {
     const list = document.getElementById("list");
-    const filter = document.getElementById("filterMonth").value;
+    if (!list) return;
+    
     list.innerHTML = "";
-    let total = 0;
+    
+    data.sort((t1, t2) => new Date(t1.d) - new Date(t2.d));
 
-    const filteredData = data.filter(t => filter === "all" || t.d.startsWith(filter));
+    let exp = 0; 
+    
+    const filteredData = data.filter(t => currentViewMonth === "all" || t.d.startsWith(currentViewMonth));
 
-    filteredData.forEach((t, i) => {
-        total += t.amount;
+    filteredData.forEach((t) => {
+        const isExpense = t.type === 'expense';
+        
+        if (isExpense) exp += t.amount;
+
         list.innerHTML += `
             <tr>
-                <td>${i + 1}</td>
-                <td>${t.d}</td>
-                <td>${t.desc}</td>
-                <td>${t.category}</td>
-                <td style="color:red; font-weight:bold">Rp ${t.amount.toLocaleString('id-ID')}</td>
-                <td>
-                    <button class="btn btn-edit" onclick="edit(${t.id})">Edit</button>
-                    <button class="btn btn-delete" onclick="hapus(${t.id})">Hapus</button>
+                <td data-label="Tgl">${t.d.split('-').reverse().join('/')}</td>
+                <td data-label="Keterangan">${t.desc}</td>
+                <td data-label="Kategori"><small>${t.category}</small></td>
+                <td data-label="Nominal" class="${isExpense ? 'text-red' : 'text-green'}">
+                    ${isExpense ? '-' : '+'} Rp ${t.amount.toLocaleString('id-ID')}
+                </td>
+                <td data-label="Aksi">
+                    <button class="btn btn-edit" onclick="edit(${t.id})">✏️</button>
+                    <button class="btn btn-delete" onclick="hapus(${t.id})">🗑️</button>
                 </td>
             </tr>`;
     });
 
-    document.getElementById("summary").innerText = `Total: Rp ${total.toLocaleString('id-ID')}`;
+    // UPDATE: Hanya update angka pengeluaran
+    const expElement = document.getElementById("total-expense");
+    if (expElement) {
+        expElement.innerText = `Rp ${exp.toLocaleString('id-ID')}`;
+    }
+
     updateChart(filteredData);
 }
 
-function updateChart(filteredData) {
-    const categories = {};
-    filteredData.forEach(t => {
-        categories[t.category] = (categories[t.category] || 0) + t.amount;
-    });
+// --- FITUR MENU BURGER (DINAMIS) ---
 
-    const ctx = document.getElementById('expenseChart').getContext('2d');
-    if (myChart) myChart.destroy();
+function toggleMenu() {
+    const sideMenu = document.getElementById("sideMenu");
+    const overlay = document.getElementById("overlay");
+    
+    sideMenu.classList.toggle("active");
+    
+    overlay.classList.toggle("active");
+}
 
-    if (filteredData.length === 0) return; // Jangan gambar kalau data kosong
+function updateMonthMenu() {
+    const monthList = document.getElementById("monthList");
+    if (!monthList) return;
 
-    myChart = new Chart(ctx, {
-        type: 'doughnut',
-        data: {
-            labels: Object.keys(categories),
-            datasets: [{
-                data: Object.values(categories),
-                backgroundColor: ['#dc3545', '#1a73e8', '#ffc107', '#28a745', '#6f42c1', '#fd7e14']
-            }]
-        },
-        options: {
-            plugins: {
-                title: { display: true, text: 'Grafik Pengeluaran' }
-            }
-        }
+    monthList.innerHTML = `<div class="month-item" onclick="filterByMonth('all')">Semua Bulan</div>`;
+
+    // Ambil bulan unik dari data yang ada saja
+    const availableMonths = [...new Set(data.map(t => t.d.substring(0, 7)))];
+    availableMonths.sort().reverse();
+
+    availableMonths.forEach(m => {
+        const date = new Date(m + "-01");
+        const monthName = date.toLocaleDateString('id-ID', { month: 'long', year: 'numeric' });
+        
+        monthList.innerHTML += `
+            <div class="month-item" onclick="filterByMonth('${m}')">
+                ${monthName}
+            </div>
+        `;
     });
 }
 
+function filterByMonth(val) {
+    currentViewMonth = val;
+    toggleMenu(); 
+    renderTable();
+}
+
+// --- FITUR EDIT, HAPUS & IMPORT/EXPORT ---
+
 function edit(id) {
-    const t = data.find(x => x.id === id);
-    const nDesc = prompt("Keterangan baru:", t.desc);
-    const nAmt = prompt("Nominal baru:", t.amount);
-    if (nDesc && nAmt) {
-        t.desc = nDesc;
-        t.amount = Math.abs(parseInt(nAmt));
+    const index = data.findIndex(x => x.id === id);
+    if (index === -1) return;
+    const t = data[index];
+
+    const nDesc = prompt("Ubah Keterangan:", t.desc);
+    if (nDesc === null) return;
+    const nAmt = prompt("Ubah Nominal:", t.amount);
+    if (nAmt === null) return;
+
+    const parsedAmount = Math.abs(parseInt(nAmt));
+    if (nDesc.trim() !== "" && !isNaN(parsedAmount)) {
+        data[index].desc = nDesc;
+        data[index].amount = parsedAmount;
         save();
     }
 }
 
 function hapus(id) {
-    if (confirm("Hapus?")) {
+    if (confirm("Hapus transaksi ini?")) {
         data = data.filter(x => x.id !== id);
         save();
     }
 }
 
-function initFilter() {
-    const f = document.getElementById("filterMonth");
-    const current = f.value;
-    const months = [...new Set(data.map(t => t.d.slice(0, 7)))].sort().reverse();
-    f.innerHTML = '<option value="all">Semua Bulan</option>';
-    months.forEach(m => f.innerHTML += `<option value="${m}" ${current === m ? 'selected' : ''}>${m}</option>`);
+function clearAllData() {
+    if (confirm("Hapus SEMUA data?")) {
+        data = [];
+        save();
+    }
 }
 
 function exportCSV() {
-    let csv = "Tanggal,Keterangan,Kategori,Nominal\n";
-    data.forEach(t => csv += `${t.d},${t.desc},${t.category},${t.amount}\n`);
+    let csv = "Tipe,Tanggal,Keterangan,Kategori,Nominal\n";
+    data.forEach(t => csv += `${t.type},${t.d},${t.desc},${t.category},${t.amount}\n`);
     const blob = new Blob([csv], { type: 'text/csv' });
     const a = document.createElement("a");
     a.href = URL.createObjectURL(blob);
-    a.download = "pengeluaran.csv";
+    a.download = `Keuangan_Yoshua.csv`;
     a.click();
 }
 
+function importFromExcel(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        const dataUint8 = new Uint8Array(e.target.result);
+        const workbook = XLSX.read(dataUint8, { type: 'array' });
+        const worksheet = workbook.Sheets[workbook.SheetNames[0]];
+        const rawJson = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
+        const importedData = [];
+
+        for (let i = 1; i < rawJson.length; i++) {
+            const row = rawJson[i];
+            if (!row || row.length === 0) continue;
+            let finalData = {};
+            if (row.length === 1 && typeof row[0] === 'string') {
+                const cols = row[0].split(',');
+                finalData = { d: cols[0], desc: cols[1], category: cols[2], amount: parseInt(cols[3]), type: 'expense' };
+            } else {
+                finalData = { d: row[0], desc: row[1], category: row[2], amount: parseInt(row[3]), type: 'expense' };
+            }
+            if (finalData.d && !isNaN(finalData.amount)) {
+                finalData.id = Date.now() + Math.random();
+                importedData.push(finalData);
+            }
+        }
+        data = [...data, ...importedData];
+        save();
+    };
+    reader.readAsArrayBuffer(file);
+}
+
+function updateChart(filteredData) {
+    const ctx = document.getElementById('expenseChart');
+    if (!ctx) return;
+    if (myChart) myChart.destroy();
+
+    const expensesOnly = filteredData.filter(t => t.type === 'expense');
+    const cats = {};
+    expensesOnly.forEach(t => cats[t.category] = (cats[t.category] || 0) + t.amount);
+
+    if (expensesOnly.length === 0) return;
+
+    myChart = new Chart(ctx.getContext('2d'), {
+        type: 'doughnut',
+        data: {
+            labels: Object.keys(cats),
+            datasets: [{
+                data: Object.values(cats),
+                backgroundColor: ['#e74c3c', '#3498db', '#f1c40f', '#2ecc71', '#9b59b6', '#e67e22']
+            }]
+        },
+        options: { responsive: true, maintainAspectRatio: false }
+    });
+}
+
+// --- JALANKAN SAAT START ---
+updateMonthMenu();
 renderTable();
