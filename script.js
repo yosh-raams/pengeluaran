@@ -155,33 +155,67 @@ function exportCSV() {
 function importFromExcel(event) {
     const file = event.target.files[0];
     if (!file) return;
-    const reader = new FileReader();
-    reader.onload = function(e) {
-        const dataUint8 = new Uint8Array(e.target.result);
-        const workbook = XLSX.read(dataUint8, { type: 'array' });
-        const worksheet = workbook.Sheets[workbook.SheetNames[0]];
-        const rawJson = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
-        const importedData = [];
 
-        for (let i = 1; i < rawJson.length; i++) {
-            const row = rawJson[i];
-            if (!row || row.length === 0) continue;
-            let finalData = {};
-            if (row.length === 1 && typeof row[0] === 'string') {
-                const cols = row[0].split(',');
-                finalData = { d: cols[0], desc: cols[1], category: cols[2], amount: parseInt(cols[3]), type: 'expense' };
+    const reader = new FileReader();
+    const fileName = file.name.toLowerCase();
+
+    reader.onload = function(e) {
+        try {
+            let workbook;
+            if (fileName.endsWith('.csv')) {
+                const data = e.target.result;
+                workbook = XLSX.read(data, { type: 'string' });
             } else {
-                finalData = { d: row[0], desc: row[1], category: row[2], amount: parseInt(row[3]), type: 'expense' };
+                const data = new Uint8Array(e.target.result);
+                workbook = XLSX.read(data, { type: 'array', cellDates: true });
             }
-            if (finalData.d && !isNaN(finalData.amount)) {
-                finalData.id = Date.now() + Math.random();
-                importedData.push(finalData);
-            }
+
+            const worksheet = workbook.Sheets[workbook.SheetNames[0]];
+            const jsonData = XLSX.utils.sheet_to_json(worksheet, { defval: "" });
+
+            if (jsonData.length === 0) throw new Error("File kosong!");
+
+            const newData = jsonData.map(row => {
+                // Fungsi pencari kolom cerdas (biar ga sensitif huruf besar/kecil)
+                const findVal = (names) => {
+                    const key = Object.keys(row).find(k => names.includes(k.trim().toLowerCase()));
+                    return key ? row[key] : null;
+                };
+
+                let rawDate = findVal(['tanggal', 'tgl', 'date']);
+                let finalDate = new Date().toISOString().split('T')[0];
+
+                if (rawDate) {
+                    let d = new Date(rawDate);
+                    // Jika format tanggal Excel berupa angka
+                    if (!isNaN(rawDate) && typeof rawDate === 'number') {
+                        d = new Date((rawDate - 25569) * 86400 * 1000);
+                    }
+                    if (!isNaN(d.getTime())) finalDate = d.toISOString().split('T')[0];
+                }
+
+                return {
+                    id: Date.now() + Math.random(),
+                    d: finalDate,
+                    desc: findVal(['keterangan', 'desc', 'ket']) || "Tanpa keterangan",
+                    category: findVal(['kategori', 'category']) || "Lainnya",
+                    amount: parseInt(String(findVal(['nominal', 'amount', 'jumlah'])).replace(/[^\d]/g, '')) || 0,
+                    type: String(findVal(['tipe', 'type']) || 'expense').toLowerCase().includes('in') ? 'income' : 'expense'
+                };
+            });
+
+            data = [...data, ...newData];
+            save(); // Simpan ke LocalStorage & Render
+            alert(`Sip! ${newData.length} data berhasil diimport.`);
+            event.target.value = '';
+        } catch (error) {
+            console.error("Error Detail:", error);
+            alert("Gagal Import: " + error.message);
         }
-        data = [...data, ...importedData];
-        save();
     };
-    reader.readAsArrayBuffer(file);
+
+    if (fileName.endsWith('.csv')) reader.readAsText(file);
+    else reader.readAsArrayBuffer(file);
 }
 
 function updateChart(filteredData) {
