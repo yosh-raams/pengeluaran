@@ -290,8 +290,9 @@ function updateChart(filteredData) {
             maintainAspectRatio: false,
             scales: currentChartType === 'bar' ? { y: { beginAtZero: true } } : {},
             animation: {
-                duration: 2000,
-                easing: 'easeOutQuart'
+                duration: 1000,
+                easing: 'easeOutQuart',
+                lazy: false
             }
         }
     });
