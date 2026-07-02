@@ -30,7 +30,7 @@
                         </div>
                     </button>
                 </div>
-
+                
                 <h1 id="total-balance">Rp 0</h1>
                 <div class="stats-mini">
                     <p>Jumlah Pemasukan: <span id="total-income" class="text-green">+ Rp 0</span></p><br>
@@ -39,8 +39,15 @@
                     </div>
                     <p>Jumlah Pengeluaran: <span id="total-expense" class="text-red">- Rp 0</span></p>
                 </div>
+                <br>
+                <div style="margin-top: 15px;">
+                    <button onclick="toggleSearch()" class="btn-filter">Pencarian Transaksi</button>
+                </div>
             </div>
-        </div>
+
+            <div id="searchBar" class="search-bar">
+                <input type="text" id="searchInput" placeholder="Cari transaksi..." onkeyup="filterTable()">
+            </div>
 
         <div class="form-group">
             <div class="input-box">
@@ -111,7 +118,11 @@
                 <tbody id="list"></tbody>
             </table>
         </div>
-
+        <br>
+        <div class="chart-options" style="text-align: center; margin-bottom: 10px;">
+            <button onclick="changeChartType('doughnut')">Lingkaran</button>
+            <button onclick="changeChartType('bar')">Batang</button>
+        </div>
         <div class="chart-section">
             <canvas id="expenseChart"></canvas>
         </div>

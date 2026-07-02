@@ -1,12 +1,9 @@
-
-
 const STORAGE_KEY = "catat_uang"; 
 
 let data = JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
 let currentViewMonth = 'all'; 
 let myChart = null; 
 
-// --- FUNGSI UTAMA ---
 
 let isSaldoVisible = true;
 
@@ -17,7 +14,6 @@ function toggleSaldoVisibility() {
     const eyeOpen = document.getElementById("eye-open");
     const eyeClosed = document.getElementById("eye-closed");
     
-    // Pastikan kedua elemen ditemukan
     if (eyeOpen && eyeClosed) {
         if (isSaldoVisible) {
             eyeOpen.style.display = "block";
@@ -45,13 +41,12 @@ function updateBalanceDisplay() {
     }
 }
 
-// Pastikan panggil updateBalanceDisplay() di dalam fungsi renderTable() & save()
 
 function save() {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
     updateMonthMenu(); 
     renderTable();
-    updateBalanceDisplay(); // Tambahkan ini agar saldo selalu update otomatis
+    updateBalanceDisplay(); 
 }
 
 function addTransaction() {
@@ -69,6 +64,7 @@ function addTransaction() {
     document.getElementById("desc").value = "";
     document.getElementById("amount").value = "";
 }
+
 
 function renderTable() {
     const list = document.getElementById("list");
@@ -102,7 +98,7 @@ function renderTable() {
             </tr>`;
     });
 
-    // UPDATE: Hanya update angka pengeluaran
+    
     const expElement = document.getElementById("total-expense");
     if (expElement) {
         expElement.innerText = `Rp ${exp.toLocaleString('id-ID')}`;
@@ -111,7 +107,6 @@ function renderTable() {
     updateChart(filteredData);
 }
 
-// --- FITUR MENU BURGER (DINAMIS) ---
 
 function toggleMenu() {
     const sideMenu = document.getElementById("sideMenu");
@@ -128,7 +123,6 @@ function updateMonthMenu() {
 
     monthList.innerHTML = `<div class="month-item" onclick="filterByMonth('all')">Semua Bulan</div>`;
 
-    // Ambil bulan unik dari data yang ada saja
     const availableMonths = [...new Set(data.map(t => t.d.substring(0, 7)))];
     availableMonths.sort().reverse();
 
@@ -149,7 +143,6 @@ function filterByMonth(val) {
     toggleMenu(); 
     renderTable();
     
-    // Tambahkan logika untuk memperbarui teks label
     const label = document.getElementById("month-label");
     if (val === 'all') {
         label.innerText = "Pengeluaran: Semua Bulan";
@@ -162,7 +155,6 @@ function filterByMonth(val) {
     }
 }
 
-// Fungsi pembantu untuk memastikan warna label sesuai
 function resetLabelStyle() {
     const label = document.getElementById("month-label");
     if (label) {
@@ -171,7 +163,6 @@ function resetLabelStyle() {
     }
 }
 
-// --- FITUR EDIT, HAPUS & IMPORT/EXPORT ---
 
 function edit(id) {
     const index = data.findIndex(x => x.id === id);
@@ -201,7 +192,7 @@ function hapus(id) {
 function clearAllData() {
     if(confirm("Yakin ingin menghapus semua data?")) {
         data = [];
-        save(); // Karena save() sudah berisi updateBalanceDisplay(), ini akan beres
+        save(); 
     }
 }
 
@@ -224,20 +215,16 @@ function importFromExcel(event) {
     reader.onload = function(e) {
         try {
             const text = e.target.result;
-            // Pecah berdasarkan baris dan bersihkan baris kosong
             const lines = text.split(/\r?\n/);
             
-            // Loop mulai dari baris ke-1 (skip header)
             const newData = [];
             for (let i = 1; i < lines.length; i++) {
                 let row = lines[i].trim();
-                if (!row) continue; // Skip baris kosong
+                if (!row) continue; 
 
-                // Bersihkan tanda kutip " di awal/akhir
                 let cleanRow = row.replace(/^"|"$/g, '').replace(/"/g, '');
                 let values = cleanRow.split(',');
 
-                // Pastikan ada minimal 5 kolom (Tipe, Tgl, Desc, Cat, Amt)
                 if (values.length >= 5) {
                     newData.push({
                         id: Date.now() + Math.random(),
@@ -263,33 +250,91 @@ function importFromExcel(event) {
     reader.readAsText(file);
 }
 
+let currentChartType = 'doughnut'; 
+
+function changeChartType(type) {
+    currentChartType = type;
+    const filteredData = data.filter(t => currentViewMonth === "all" || t.d.startsWith(currentViewMonth));
+    updateChart(filteredData);
+}
+
 function updateChart(filteredData) {
     const ctx = document.getElementById('expenseChart');
     if (!ctx) return;
-    if (myChart) myChart.destroy();
+
+    if (myChart instanceof Chart) {
+        myChart.destroy();
+    }
 
     const expensesOnly = filteredData.filter(t => t.type === 'expense');
     const cats = {};
     expensesOnly.forEach(t => cats[t.category] = (cats[t.category] || 0) + t.amount);
 
-    if (expensesOnly.length === 0) return;
+    if (expensesOnly.length === 0) {
+        ctx.getContext('2d').clearRect(0, 0, ctx.width, ctx.height);
+        return;
+    }
 
     myChart = new Chart(ctx.getContext('2d'), {
-        type: 'doughnut',
+        type: currentChartType, 
         data: {
             labels: Object.keys(cats),
             datasets: [{
+                label: 'Pengeluaran per Kategori',
                 data: Object.values(cats),
                 backgroundColor: ['#e74c3c', '#3498db', '#f1c40f', '#2ecc71', '#9b59b6', '#e67e22']
             }]
         },
-        options: { responsive: true, maintainAspectRatio: false }
+        options: { 
+            responsive: true, 
+            maintainAspectRatio: false,
+            scales: currentChartType === 'bar' ? { y: { beginAtZero: true } } : {}
+        }
     });
 }
 
+function changeChartType(type) {
+    currentChartType = type;
+    
+    const buttons = document.querySelectorAll('.chart-options button');
+    buttons.forEach(btn => {
+        btn.classList.remove('active');
+        if (btn.innerText.toLowerCase() === (type === 'doughnut' ? 'lingkaran' : 'batang')) {
+            btn.classList.add('active');
+        }
+    });
+
+    const filteredData = data.filter(t => currentViewMonth === "all" || t.d.startsWith(currentViewMonth));
+    updateChart(filteredData);
+}
+
+function filterTable() {
+    const query = document.getElementById("searchInput").value.toLowerCase();
+    const rows = document.getElementById("list").getElementsByTagName("tr");
+
+    for (let i = 0; i < rows.length; i++) {
+        const desc = rows[i].getElementsByTagName("td")[1].innerText.toLowerCase();
+        const cat = rows[i].getElementsByTagName("td")[2].innerText.toLowerCase();
+        
+        if (desc.includes(query) || cat.includes(query)) {
+            rows[i].style.display = "";
+        } else {
+            rows[i].style.display = "none";
+        }
+    }
+}
+
+function toggleSearch() {
+    const searchBar = document.getElementById("searchBar");
+    searchBar.classList.toggle("active");
+    
+    if (!searchBar.classList.contains("active")) {
+        document.getElementById("searchInput").value = "";
+        filterTable(); 
+    }
+}
 
 
-// --- JALANKAN SAAT START ---
 updateMonthMenu();
 renderTable();
 updateBalanceDisplay();

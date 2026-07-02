@@ -29,7 +29,6 @@ td[data-label="Nominal"] {
 }
 
 .card-utama {
-    /* Mengganti background solid dengan gradasi yang elegan */
     background: linear-gradient(45deg, #202231 0%, #31365e 100%);
     color: white;
     padding: 25px;
@@ -37,26 +36,24 @@ td[data-label="Nominal"] {
     margin-bottom: 20px;
     text-align: left;
     box-shadow: 0 10px 20px rgba(0, 0, 0, 0.342);
-    
-    /* Menambahkan border tipis agar terlihat lebih "mahal" di atas gradasi */
     border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
-/* Tambahkan di style.css */
+
 #month-label {
-    font-size: 0.75rem;      /* Sedikit lebih kecil agar rapi */
-    color: #ffcc00;         /* Warna emas agar kontras dengan background gelap */
+    font-size: 0.75rem;      
+    color: #ffcc00;         
     font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 0.5px;
-    margin-bottom: 8px;     /* Memberi jarak dengan angka pengeluaran */
+    margin-bottom: 8px;     
     opacity: 0.9;
 }
 
 .header-saldo { display: flex; justify-content: space-between; font-size: 0.8rem; opacity: 0.8; }
 #btn-hide { background: none; border: none; color: white; cursor: pointer; }
 
-/* Dark Mode Logic */
+
 body.dark-mode { background-color: #1a1a1a; color: white; }
 body.dark-mode .container { background: #2d2d2d; color: white; }
 
@@ -71,7 +68,6 @@ body.dark-mode .container { background: #2d2d2d; color: white; }
 }
 
 
-/* 2. Tambahkan style untuk judul agar menonjol */
 h2 {
     font-family: 'Outfit', sans-serif;
     font-size: 2.2rem;
@@ -80,14 +76,11 @@ h2 {
     letter-spacing: 2px;
     text-align: center;
     margin-bottom: 25px;
-    
-    /* Tanpa background-clip, kita gunakan text-shadow yang lebih tegas */
     text-shadow:0 0 5px rgb(255, 255, 255), 
                 0 0 10px rgb(0, 46, 253), 
                 2px 2px 4px rgb(0, 0, 0);
 }
 
-/* Dashboard Cards */
 .expense-minimal {
     display: flex;
     align-items: center;
@@ -96,7 +89,7 @@ h2 {
     padding: 15px 30px;
     border-radius: 20px;
     box-shadow: 0 8px 15px rgba(255, 75, 43, 0.2);
-    min-width: 300px; /* Tidak terlalu lebar, tidak terlalu sempit */
+    min-width: 300px; 
     gap: 20px;
 }
 
@@ -125,7 +118,7 @@ h2 {
     font-weight: 700;
 }
 
-/* Responsif untuk HP */
+
 @media (max-width: 480px) {
     .expense-minimal {
         width: 100%;
@@ -136,7 +129,6 @@ h2 {
     }
 }
 
-/* Form Style */
 .form-group {
     display: flex;
     flex-wrap: wrap;
@@ -168,12 +160,12 @@ input, select {
 
 .btn-add { background: var(--dark); color: white; padding: 10px 25px; }
 
-/* Table Style */
+
 tr:hover { background-color: #f8f9fa; }
 .text-red { color: var(--danger); font-weight: bold; }
 .text-green { color: var(--success); font-weight: bold; }
 
-/* Styling Tombol di Header agar Rapi di Desktop maupun HP */
+
 .header-actions {
     display: flex;
     justify-content: space-between;
@@ -273,8 +265,6 @@ tr:hover { background-color: #f8f9fa; }
     height: 36px;
     padding: 6px 16px;
 }
-
-/* -- CSS UNTUK TABEL YANG RAMAH HP (RESPONSIVE) -- */
 
 
 .table-container {
@@ -400,10 +390,11 @@ th {
 
 }
 
+
 .chart-section {
     margin: 40px auto;
-    max-width: 350px; 
-    height: 350px;    
+    max-width: 600px; 
+    height: 350px;
     position: relative;
 }
 
@@ -411,4 +402,66 @@ th {
 #expenseChart {
     width: 100% !important;
     height: 100% !important;
+}
+
+.chart-options {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    margin-bottom: 20px;
+}
+
+.chart-options button {
+    background: linear-gradient(15deg, #202231 0%, #31365e 100%);
+    color: #ffffff;
+    border: 1px solid #4361ee;
+    padding: 8px 20px;
+    border-radius: 20px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-weight: 600;
+}
+
+
+.chart-options button.active {
+    background: #4361ee;
+    box-shadow: 0 4px 15px rgba(67, 97, 238, 0.4);
+}
+
+.chart-options button:hover {
+    background: linear-gradient(45deg, #202231 0%, #31365e 100%);
+}
+
+.btn-filter {
+    background: rgba(255, 255, 255, 0.1);
+    color: white;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    padding: 5px 15px;
+    border-radius: 8px;
+    cursor: pointer;
+}
+
+.search-bar {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.4s ease-out, margin 0.4s;
+}
+
+.search-bar.active {
+    max-height: 60px; 
+    margin-bottom: 20px;
+}
+
+#searchInput {
+    width: 100%;
+    padding: 12px;
+    border-radius: 12px;
+    border: 2px solid #4361ee;
+    background: linear-gradient(45deg, #202231 0%, #31365e 100%);
+    color: white;
+    box-sizing: border-box;
+}
+
+#searchInput::placeholder {
+    color: rgba(255, 255, 255, 0.788);
 }
