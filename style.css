@@ -1,3 +1,5 @@
+
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@800&display=swap');
 @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700&family=Roboto+Mono:wght@500&display=swap');
 
 :root {
@@ -26,6 +28,38 @@ td[data-label="Nominal"] {
     letter-spacing: -0.5px;
 }
 
+.card-utama {
+    /* Mengganti background solid dengan gradasi yang elegan */
+    background: linear-gradient(45deg, #202231 0%, #31365e 100%);
+    color: white;
+    padding: 25px;
+    border-radius: 20px;
+    margin-bottom: 20px;
+    text-align: left;
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.342);
+    
+    /* Menambahkan border tipis agar terlihat lebih "mahal" di atas gradasi */
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* Tambahkan di style.css */
+#month-label {
+    font-size: 0.75rem;      /* Sedikit lebih kecil agar rapi */
+    color: #ffcc00;         /* Warna emas agar kontras dengan background gelap */
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 8px;     /* Memberi jarak dengan angka pengeluaran */
+    opacity: 0.9;
+}
+
+.header-saldo { display: flex; justify-content: space-between; font-size: 0.8rem; opacity: 0.8; }
+#btn-hide { background: none; border: none; color: white; cursor: pointer; }
+
+/* Dark Mode Logic */
+body.dark-mode { background-color: #1a1a1a; color: white; }
+body.dark-mode .container { background: #2d2d2d; color: white; }
+
 .container {
     max-width: 1000px;
     margin: 30px auto;
@@ -34,6 +68,23 @@ td[data-label="Nominal"] {
     border-radius: 16px;
     box-shadow: 0 10px 30px rgb(0, 0, 0);
     text-align: center;
+}
+
+
+/* 2. Tambahkan style untuk judul agar menonjol */
+h2 {
+    font-family: 'Outfit', sans-serif;
+    font-size: 2.2rem;
+    color: #31365e;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    text-align: center;
+    margin-bottom: 25px;
+    
+    /* Tanpa background-clip, kita gunakan text-shadow yang lebih tegas */
+    text-shadow:0 0 5px rgb(255, 255, 255), 
+                0 0 10px rgb(0, 46, 253), 
+                2px 2px 4px rgb(0, 0, 0);
 }
 
 /* Dashboard Cards */

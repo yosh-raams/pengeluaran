@@ -3,22 +3,41 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MoneyTracker</title>
+    <title>MyMoneyTracker</title>
     <link rel="stylesheet" href="style.css">
-    <link rel="icon" href="koin.png">
+    <link rel="icon" href="uang.png">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.sheetjs.com/xlsx-0.20.0/package/dist/xlsx.full.min.js"></script>
 </head>
 <body>
     <div class="container">
-        <h2> MAS YOS MONEY TRACKER </h2>
+    <h2>Yoshua’s Wallet</h2>
+    
+        <div class="dashboard-main">
+            <div class="card-utama">
+                <div class="header-saldo">
+                    <span>TOTAL SALDO</span>
+                    <button onclick="toggleSaldoVisibility()" id="btn-hide" style="background: none; border: none; cursor: pointer; padding: 0;">
+                        <div style="position: relative; width: 24px; height: 24px; color: white;">
+                            <svg id="eye-open" viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" style="display: block;">
+                                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                                <circle cx="12" cy="12" r="3"></circle>
+                            </svg>
+                            <svg id="eye-closed" viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" style="display: none;">
+                                <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path>
+                                <line x1="1" y1="1" x2="23" y2="23"></line>
+                            </svg>
+                        </div>
+                    </button>
+                </div>
 
-        <div class="dashboard-wrapper" style="display: flex; justify-content: center; margin-bottom: 25px;">
-            <div class="card expense-minimal">
-                <div class="card-icon">💸</div>
-                <div class="card-info">
-                    <span>Total Pengeluaran Bulan Ini</span>
-                    <h3 id="total-expense">Rp 0</h3>
+                <h1 id="total-balance">Rp 0</h1>
+                <div class="stats-mini">
+                    <p>Jumlah Pemasukan: <span id="total-income" class="text-green">+ Rp 0</span></p><br>
+                        <div id="month-label" style="font-size: 0.9rem; margin-bottom: 5px; opacity: 0.8;">
+                        Pengeluaran : Semua Bulan
+                    </div>
+                    <p>Jumlah Pengeluaran: <span id="total-expense" class="text-red">- Rp 0</span></p>
                 </div>
             </div>
         </div>

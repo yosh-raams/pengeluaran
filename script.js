@@ -1,3 +1,5 @@
+
+
 const STORAGE_KEY = "catat_uang"; 
 
 let data = JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
@@ -6,10 +8,50 @@ let myChart = null;
 
 // --- FUNGSI UTAMA ---
 
+let isSaldoVisible = true;
+
+function toggleSaldoVisibility() {
+    isSaldoVisible = !isSaldoVisible;
+    updateBalanceDisplay();
+    
+    const eyeOpen = document.getElementById("eye-open");
+    const eyeClosed = document.getElementById("eye-closed");
+    
+    // Pastikan kedua elemen ditemukan
+    if (eyeOpen && eyeClosed) {
+        if (isSaldoVisible) {
+            eyeOpen.style.display = "block";
+            eyeClosed.style.display = "none";
+        } else {
+            eyeOpen.style.display = "none";
+            eyeClosed.style.display = "block";
+        }
+    }
+}
+
+function updateBalanceDisplay() {
+    const income = data.filter(t => t.type === 'income').reduce((sum, t) => sum + t.amount, 0);
+    const expense = data.filter(t => t.type === 'expense').reduce((sum, t) => sum + t.amount, 0);
+    const balance = income - expense;
+
+    if (isSaldoVisible) {
+        document.getElementById("total-balance").innerText = `Rp ${balance.toLocaleString('id-ID')}`;
+        document.getElementById("total-income").innerText = `+ Rp ${income.toLocaleString('id-ID')}`;
+        document.getElementById("total-expense").innerText = `- Rp ${expense.toLocaleString('id-ID')}`;
+    } else {
+        document.getElementById("total-balance").innerText = "Rp •••••••";
+        document.getElementById("total-income").innerText = "+ Rp •••••••";
+        document.getElementById("total-expense").innerText = "- Rp •••••••";
+    }
+}
+
+// Pastikan panggil updateBalanceDisplay() di dalam fungsi renderTable() & save()
+
 function save() {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
     updateMonthMenu(); 
     renderTable();
+    updateBalanceDisplay(); // Tambahkan ini agar saldo selalu update otomatis
 }
 
 function addTransaction() {
@@ -106,6 +148,27 @@ function filterByMonth(val) {
     currentViewMonth = val;
     toggleMenu(); 
     renderTable();
+    
+    // Tambahkan logika untuk memperbarui teks label
+    const label = document.getElementById("month-label");
+    if (val === 'all') {
+        label.innerText = "Pengeluaran: Semua Bulan";
+        label.style.color = "#ffffff";
+    } else {
+        const date = new Date(val + "-01");
+        const monthName = date.toLocaleDateString('id-ID', { month: 'long', year: 'numeric' });
+        label.innerText = `Pengeluaran: ${monthName}`;
+        label.style.color = "#ffcc00";
+    }
+}
+
+// Fungsi pembantu untuk memastikan warna label sesuai
+function resetLabelStyle() {
+    const label = document.getElementById("month-label");
+    if (label) {
+        label.innerText = "Pengeluaran : Semua Bulan";
+        label.style.color = "#ffffff"; // Ubah menjadi putih
+    }
 }
 
 // --- FITUR EDIT, HAPUS & IMPORT/EXPORT ---
@@ -136,9 +199,9 @@ function hapus(id) {
 }
 
 function clearAllData() {
-    if (confirm("Hapus SEMUA data?")) {
+    if(confirm("Yakin ingin menghapus semua data?")) {
         data = [];
-        save();
+        save(); // Karena save() sudah berisi updateBalanceDisplay(), ini akan beres
     }
 }
 
@@ -148,7 +211,7 @@ function exportCSV() {
     const blob = new Blob([csv], { type: 'text/csv' });
     const a = document.createElement("a");
     a.href = URL.createObjectURL(blob);
-    a.download = `Keuangan_Yoshua.csv`;
+    a.download = `LaporanKeuangan_Yoshua.csv`;
     a.click();
 }
 
@@ -157,55 +220,38 @@ function importFromExcel(event) {
     if (!file) return;
 
     const reader = new FileReader();
-    const fileName = file.name.toLowerCase();
 
     reader.onload = function(e) {
         try {
-            let workbook;
-            if (fileName.endsWith('.csv')) {
-                const data = e.target.result;
-                workbook = XLSX.read(data, { type: 'string' });
-            } else {
-                const data = new Uint8Array(e.target.result);
-                workbook = XLSX.read(data, { type: 'array', cellDates: true });
+            const text = e.target.result;
+            // Pecah berdasarkan baris dan bersihkan baris kosong
+            const lines = text.split(/\r?\n/);
+            
+            // Loop mulai dari baris ke-1 (skip header)
+            const newData = [];
+            for (let i = 1; i < lines.length; i++) {
+                let row = lines[i].trim();
+                if (!row) continue; // Skip baris kosong
+
+                // Bersihkan tanda kutip " di awal/akhir
+                let cleanRow = row.replace(/^"|"$/g, '').replace(/"/g, '');
+                let values = cleanRow.split(',');
+
+                // Pastikan ada minimal 5 kolom (Tipe, Tgl, Desc, Cat, Amt)
+                if (values.length >= 5) {
+                    newData.push({
+                        id: Date.now() + Math.random(),
+                        d: values[1] || new Date().toISOString().split('T')[0],
+                        desc: values[2] || "Tanpa keterangan",
+                        category: values[3] || "Lainnya",
+                        amount: parseInt(String(values[4]).replace(/[^\d]/g, '')) || 0,
+                        type: String(values[0]).toLowerCase().includes('in') ? 'income' : 'expense'
+                    });
+                }
             }
 
-            const worksheet = workbook.Sheets[workbook.SheetNames[0]];
-            const jsonData = XLSX.utils.sheet_to_json(worksheet, { defval: "" });
-
-            if (jsonData.length === 0) throw new Error("File kosong!");
-
-            const newData = jsonData.map(row => {
-                // Fungsi pencari kolom cerdas (biar ga sensitif huruf besar/kecil)
-                const findVal = (names) => {
-                    const key = Object.keys(row).find(k => names.includes(k.trim().toLowerCase()));
-                    return key ? row[key] : null;
-                };
-
-                let rawDate = findVal(['tanggal', 'tgl', 'date']);
-                let finalDate = new Date().toISOString().split('T')[0];
-
-                if (rawDate) {
-                    let d = new Date(rawDate);
-                    // Jika format tanggal Excel berupa angka
-                    if (!isNaN(rawDate) && typeof rawDate === 'number') {
-                        d = new Date((rawDate - 25569) * 86400 * 1000);
-                    }
-                    if (!isNaN(d.getTime())) finalDate = d.toISOString().split('T')[0];
-                }
-
-                return {
-                    id: Date.now() + Math.random(),
-                    d: finalDate,
-                    desc: findVal(['keterangan', 'desc', 'ket']) || "Tanpa keterangan",
-                    category: findVal(['kategori', 'category']) || "Lainnya",
-                    amount: parseInt(String(findVal(['nominal', 'amount', 'jumlah'])).replace(/[^\d]/g, '')) || 0,
-                    type: String(findVal(['tipe', 'type']) || 'expense').toLowerCase().includes('in') ? 'income' : 'expense'
-                };
-            });
-
             data = [...data, ...newData];
-            save(); // Simpan ke LocalStorage & Render
+            save(); 
             alert(`Sip! ${newData.length} data berhasil diimport.`);
             event.target.value = '';
         } catch (error) {
@@ -214,8 +260,7 @@ function importFromExcel(event) {
         }
     };
 
-    if (fileName.endsWith('.csv')) reader.readAsText(file);
-    else reader.readAsArrayBuffer(file);
+    reader.readAsText(file);
 }
 
 function updateChart(filteredData) {
@@ -242,6 +287,9 @@ function updateChart(filteredData) {
     });
 }
 
+
+
 // --- JALANKAN SAAT START ---
 updateMonthMenu();
 renderTable();
+updateBalanceDisplay();
