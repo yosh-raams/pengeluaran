@@ -391,13 +391,31 @@ th {
 }
 
 
-.chart-section {
-    margin: 40px auto;
-    max-width: 600px; 
-    height: 350px;
-    position: relative;
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
+.chart-section {
+    margin: 40px auto;
+    max-width: 600px;
+    height: 350px;
+    position: relative;
+    animation: fadeInUp 0.8s ease-out forwards;
+}
+
+@media (max-width: 600px) {
+    .chart-section {
+        height: 300px; 
+        margin: 20px auto;
+    }
+}
 
 #expenseChart {
     width: 100% !important;

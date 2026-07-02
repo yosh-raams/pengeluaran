@@ -288,7 +288,11 @@ function updateChart(filteredData) {
         options: { 
             responsive: true, 
             maintainAspectRatio: false,
-            scales: currentChartType === 'bar' ? { y: { beginAtZero: true } } : {}
+            scales: currentChartType === 'bar' ? { y: { beginAtZero: true } } : {},
+            animation: {
+                duration: 2000,
+                easing: 'easeOutQuart'
+            }
         }
     });
 }
