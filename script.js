@@ -31,13 +31,13 @@ function updateBalanceDisplay() {
     const balance = income - expense;
 
     if (isSaldoVisible) {
-        document.getElementById("total-balance").innerText = `Rp ${balance.toLocaleString('id-ID')}`;
+        document.getElementById("total-balance").innerHTML = `Rp ${balance.toLocaleString('id-ID')}<sup>*</sup>`;
         document.getElementById("total-income").innerText = `+ Rp ${income.toLocaleString('id-ID')}`;
         document.getElementById("total-expense").innerText = `- Rp ${expense.toLocaleString('id-ID')}`;
     } else {
-        document.getElementById("total-balance").innerText = "Rp •••••••";
-        document.getElementById("total-income").innerText = "+ Rp •••••••";
-        document.getElementById("total-expense").innerText = "- Rp •••••••";
+        document.getElementById("total-balance").innerText = "Rp ••••••*";
+        document.getElementById("total-income").innerText = "+ Rp ••••••";
+        document.getElementById("total-expense").innerText = "- Rp ••••••";
     }
 }
 
@@ -159,7 +159,7 @@ function resetLabelStyle() {
     const label = document.getElementById("month-label");
     if (label) {
         label.innerText = "Pengeluaran : Semua Bulan";
-        label.style.color = "#ffffff"; // Ubah menjadi putih
+        label.style.color = "#ffffff";
     }
 }
 
